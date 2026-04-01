@@ -1,3 +1,5 @@
+from datetime import date
+
 from pawpal_system import Pet, Task
 
 
@@ -28,3 +30,23 @@ def test_add_task_increases_pet_task_count() -> None:
     pet.add_task(task)
 
     assert len(pet.tasks) == 1
+
+
+def test_mark_task_complete_creates_next_daily_occurrence() -> None:
+    pet = Pet(name="Luna", species="cat", age=2)
+    task = Task(
+        title="Evening play",
+        duration_minutes=15,
+        priority="medium",
+        category="enrichment",
+        scheduled_time="18:00",
+        frequency="daily",
+        due_date=date(2026, 4, 1),
+    )
+    pet.add_task(task)
+
+    next_task = pet.mark_task_complete("Evening play")
+
+    assert next_task is not None
+    assert next_task.due_date == date(2026, 4, 2)
+    assert len(pet.tasks) == 2

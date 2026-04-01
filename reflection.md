@@ -81,8 +81,8 @@ classDiagram
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- One tradeoff in my scheduler is that conflict detection only checks for exact date-and-time matches instead of full overlapping durations. For example, it will warn if two tasks are both scheduled at `08:00`, but it will not yet detect that a task from `08:00-08:30` overlaps with one starting at `08:15`.
+- That tradeoff is reasonable for this version because it keeps the logic lightweight, readable, and easy to verify while still catching the most obvious scheduling mistakes a pet owner might make.
 
 ---
 
