@@ -6,6 +6,14 @@ from typing import Optional
 
 
 PRIORITY_RANK = {"high": 3, "medium": 2, "low": 1}
+PRIORITY_BADGES = {"high": "🔴 High", "medium": "🟡 Medium", "low": "🟢 Low"}
+CATEGORY_ICONS = {
+    "exercise": "🐕",
+    "feeding": "🍽️",
+    "medication": "💊",
+    "enrichment": "🧩",
+    "grooming": "🪮",
+}
 
 
 @dataclass
@@ -36,6 +44,18 @@ class Task:
     def priority_score(self) -> int:
         """Return a numeric score for sorting task priority."""
         return PRIORITY_RANK.get(self.priority.lower(), 0)
+
+    def priority_badge(self) -> str:
+        """Return a display-friendly priority label."""
+        return PRIORITY_BADGES.get(self.priority.lower(), self.priority.title())
+
+    def category_icon(self) -> str:
+        """Return an emoji for the task category."""
+        return CATEGORY_ICONS.get(self.category.lower(), "📌")
+
+    def status_badge(self) -> str:
+        """Return a display-friendly completion label."""
+        return "✅ Done" if self.completed else "⏳ Pending"
 
     def next_occurrence(self) -> Optional[Task]:
         """Create the next recurring task instance after completion."""
@@ -142,11 +162,10 @@ class Scheduler:
     """Builds and explains a daily care plan."""
 
     def create_daily_plan(self, owner: Owner) -> list[Task]:
-        """Build a daily task list that fits the owner's constraints."""
+        """Build a daily task list sorted by priority first, then time."""
         tasks = self.filter_tasks(owner)
         prioritized_tasks = self.prioritize_tasks(tasks)
-        selected_tasks = self.filter_tasks_by_time(prioritized_tasks, owner.available_minutes)
-        return self.sort_by_time(selected_tasks)
+        return self.filter_tasks_by_time(prioritized_tasks, owner.available_minutes)
 
     def sort_by_time(self, tasks: list[Task]) -> list[Task]:
         """Sort tasks by due date and HH:MM time string."""

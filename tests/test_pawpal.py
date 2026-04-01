@@ -136,3 +136,45 @@ def test_create_daily_plan_returns_empty_list_for_pet_with_no_tasks() -> None:
     schedule = scheduler.create_daily_plan(owner)
 
     assert schedule == []
+
+
+def test_create_daily_plan_uses_priority_before_time_when_time_is_limited() -> None:
+    owner = Owner(name="Jordan", available_minutes=30)
+    scheduler = Scheduler()
+    pet = Pet(name="Mochi", species="dog", age=4)
+
+    pet.add_task(
+        Task(
+            title="Low priority walk",
+            duration_minutes=20,
+            priority="low",
+            category="exercise",
+            scheduled_time="07:00",
+            due_date=date(2026, 4, 1),
+        )
+    )
+    pet.add_task(
+        Task(
+            title="Medication",
+            duration_minutes=10,
+            priority="high",
+            category="medication",
+            scheduled_time="09:00",
+            due_date=date(2026, 4, 1),
+        )
+    )
+    pet.add_task(
+        Task(
+            title="Breakfast",
+            duration_minutes=15,
+            priority="medium",
+            category="feeding",
+            scheduled_time="08:00",
+            due_date=date(2026, 4, 1),
+        )
+    )
+    owner.add_pet(pet)
+
+    schedule = scheduler.create_daily_plan(owner)
+
+    assert [task.title for task in schedule] == ["Medication", "Breakfast"]

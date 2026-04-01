@@ -1,31 +1,72 @@
+import sys
+
 from pawpal_system import Owner, Pet, Scheduler, Task
+
+try:
+    from tabulate import tabulate
+except ImportError:
+    tabulate = None
+
+
+def format_task_rows(tasks: list[Task]) -> list[list[str]]:
+    """Build CLI-friendly rows with icons and status labels."""
+    supports_unicode = (sys.stdout.encoding or "").lower().startswith("utf")
+
+    def normalize(text: str, ascii_fallback: str) -> str:
+        return text if supports_unicode else ascii_fallback
+
+    return [
+        [
+            task.due_date.isoformat(),
+            task.scheduled_time,
+            normalize(task.category_icon(), task.category.title()),
+            task.title,
+            normalize(task.priority_badge(), task.priority.title()),
+            f"{task.duration_minutes} min",
+            normalize(task.status_badge(), "Done" if task.completed else "Pending"),
+        ]
+        for task in tasks
+    ]
+
+
+def print_task_table(title: str, tasks: list[Task]) -> None:
+    """Print tasks in a structured table, with a fallback if tabulate is unavailable."""
+    print(f"\n{title}")
+    print("-" * 72)
+
+    if not tasks:
+        print("No tasks to display.")
+        return
+
+    headers = ["Due Date", "Time", "Type", "Task", "Priority", "Duration", "Status"]
+    rows = format_task_rows(tasks)
+
+    if tabulate is not None:
+        print(tabulate(rows, headers=headers, tablefmt="rounded_grid"))
+        return
+
+    print(" | ".join(headers))
+    print("-" * 72)
+    for row in rows:
+        print(" | ".join(row))
 
 
 def print_schedule(owner: Owner, scheduler: Scheduler) -> None:
     """Print a readable daily schedule for the terminal."""
     schedule = scheduler.create_daily_plan(owner)
 
-    print(f"Today's Schedule for {owner.name}")
-    print("-" * 40)
-
     if not schedule:
-        print("No tasks scheduled today.")
+        print_task_table(f"Today's Schedule for {owner.name}", [])
         return
 
-    for index, task in enumerate(schedule, start=1):
-        print(f"{index}. {task}")
-
-    print("-" * 40)
+    print_task_table(f"Today's Schedule for {owner.name}", schedule)
     print(scheduler.explain_plan(schedule, owner))
 
 
 def print_filtered_tasks(owner: Owner, scheduler: Scheduler, pet_name: str) -> None:
     """Print filtered tasks for one pet."""
     tasks = scheduler.sort_by_time(scheduler.filter_tasks(owner, pet_name=pet_name, completed=False))
-    print(f"\nPending tasks for {pet_name}")
-    print("-" * 40)
-    for task in tasks:
-        print(task)
+    print_task_table(f"Pending tasks for {pet_name}", tasks)
 
 
 def print_conflicts(owner: Owner, scheduler: Scheduler) -> None:
@@ -49,7 +90,7 @@ def print_recurring_result(pet: Pet, task_title: str) -> None:
         print(f"No recurring task was generated for '{task_title}'.")
     else:
         print(f"Completed '{task_title}' and created next occurrence:")
-        print(next_task)
+        print_task_table("Next occurrence", [next_task])
 
 
 def build_demo_data() -> tuple[Owner, Scheduler]:

@@ -152,14 +152,15 @@ if all_tasks:
     st.table(
         [
             {
+                "type": task.category_icon(),
                 "due_date": task.due_date.isoformat(),
                 "time": task.scheduled_time,
                 "title": task.title,
                 "duration_minutes": task.duration_minutes,
-                "priority": task.priority,
+                "priority": task.priority_badge(),
                 "category": task.category,
                 "frequency": task.frequency,
-                "completed": task.completed,
+                "status": task.status_badge(),
             }
             for task in filtered_tasks
         ]
@@ -180,15 +181,19 @@ elif all_tasks:
 if st.button("Generate schedule"):
     schedule = scheduler.create_daily_plan(owner)
     if schedule:
+        high_priority_count = sum(1 for task in schedule if task.priority.lower() == "high")
+        st.success(f"Built a plan with {len(schedule)} task(s), including {high_priority_count} high-priority item(s).")
         st.table(
             [
                 {
+                    "type": task.category_icon(),
                     "due_date": task.due_date.isoformat(),
                     "time": task.scheduled_time,
                     "title": task.title,
                     "duration_minutes": task.duration_minutes,
-                    "priority": task.priority,
+                    "priority": task.priority_badge(),
                     "category": task.category,
+                    "status": task.status_badge(),
                 }
                 for task in schedule
             ]
