@@ -50,3 +50,21 @@ PawPal+ now includes a few lightweight scheduling features to make planning more
 - The scheduler can filter tasks by pet name or completion status.
 - Daily and weekly recurring tasks automatically generate the next occurrence when completed.
 - The scheduler can detect exact-time conflicts and return warning messages instead of crashing.
+
+## Testing PawPal+
+
+Run the automated tests with:
+
+```bash
+python -m pytest
+```
+
+The test suite currently checks:
+
+- Basic task completion and pet task addition behavior
+- Chronological sorting of scheduled tasks
+- Daily recurrence creating the next task instance
+- Exact-time conflict detection
+- The empty-schedule case when a pet has no tasks
+
+Confidence Level: `4/5 stars`
