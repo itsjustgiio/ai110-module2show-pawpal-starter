@@ -15,7 +15,7 @@
 - `Task` represents one unit of care work. It holds the task title, duration, priority, category, optional preferred time, and completion state.
 - `Scheduler` is responsible for turning the owner's constraints and all pending tasks into a daily plan. It should prioritize tasks, filter them based on available time, and explain why tasks were selected.
 
-- Mermaid draft:
+- Final Mermaid diagram:
 
 ```mermaid
 classDiagram
@@ -26,6 +26,7 @@ classDiagram
         +pets: list[Pet]
         +add_pet(pet: Pet)
         +update_available_time(minutes: int)
+        +get_pet(pet_name: str)
         +get_all_tasks() list[Task]
     }
 
@@ -38,6 +39,8 @@ classDiagram
         +add_task(task: Task)
         +remove_task(task_title: str)
         +get_pending_tasks() list[Task]
+        +get_tasks_by_status(completed: bool) list[Task]
+        +mark_task_complete(task_title: str) Task
     }
 
     class Task {
@@ -45,17 +48,25 @@ classDiagram
         +duration_minutes: int
         +priority: str
         +category: str
+        +scheduled_time: str
+        +frequency: str
         +notes: str
         +preferred_time: str
         +completed: bool
+        +due_date: date
         +mark_complete()
         +matches_time_preference(time_block: str) bool
+        +priority_score() int
+        +next_occurrence() Task
     }
 
     class Scheduler {
         +create_daily_plan(owner: Owner) list[Task]
+        +sort_by_time(tasks: list[Task]) list[Task]
         +prioritize_tasks(tasks: list[Task]) list[Task]
+        +filter_tasks(owner: Owner, pet_name: str, completed: bool) list[Task]
         +filter_tasks_by_time(tasks: list[Task], available_minutes: int) list[Task]
+        +detect_conflicts(owner: Owner) list[str]
         +explain_plan(selected_tasks: list[Task], owner: Owner) str
     }
 
@@ -68,7 +79,8 @@ classDiagram
 **b. Design changes**
 
 - I kept the first draft intentionally simple so the relationships stayed clear. One design choice I made while drafting the skeleton was to keep scheduling behavior inside a dedicated `Scheduler` class instead of mixing it into `Owner` or `Pet`.
-- I also added `preferred_time` and `completed` to `Task` because those fields will make it easier to support scheduling decisions and track whether a task still needs to be included in the daily plan.
+- I later expanded `Task` with `scheduled_time`, `frequency`, and `due_date` so the scheduler could sort tasks and support recurring care.
+- I also added `mark_task_complete()` to `Pet` and `detect_conflicts()` to `Scheduler` because the final app needed a clear place to handle recurring task rollover and lightweight schedule warnings.
 
 ---
 
@@ -76,8 +88,8 @@ classDiagram
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+- My scheduler considers available minutes, task priority, due date, scheduled time, and task completion status. It also supports simple filtering by pet name so the owner can focus on one animal at a time.
+- I treated time and priority as the most important constraints because the project scenario is about a busy owner who cannot do everything. That means the system should first choose tasks that matter most and then fit them into the amount of time the owner actually has.
 
 **b. Tradeoffs**
 
@@ -90,13 +102,13 @@ classDiagram
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+- I used AI for design brainstorming, turning UML ideas into class skeletons, suggesting small scheduling algorithms, and drafting starter tests. It was most helpful when I gave it a specific file and a focused question about one design problem at a time.
+- The most effective prompts were concrete ones like "How should `Scheduler` retrieve all tasks from the owner's pets?" or "What edge cases matter for sorting and recurring tasks in this codebase?" Those prompts led to useful suggestions that I could quickly compare against my own design goals.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+- One moment where I did not accept the broadest possible AI-style solution was conflict detection. A more advanced approach could calculate overlapping durations, but I kept a simpler exact-time warning system because it was easier to explain, test, and fit within the project scope.
+- I verified AI suggestions by running the CLI demo, checking the Streamlit UI behavior, and using `pytest` to confirm that the code still passed the important behaviors I expected.
 
 ---
 
@@ -104,13 +116,13 @@ classDiagram
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+- I tested task completion, adding a task to a pet, chronological sorting, recurring daily task generation, conflict detection, and the empty-schedule case.
+- These tests were important because they cover the main pieces of system behavior that make the scheduler feel intelligent instead of just being a data container.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+- I am fairly confident that the scheduler works correctly for the main scenarios in this project because the CLI demo and automated tests both confirm the expected behavior. My confidence level is 4 out of 5.
+- If I had more time, I would test overlapping durations, duplicate pet names, invalid time formats, and more UI-driven flows such as repeated button clicks in Streamlit session state.
 
 ---
 
@@ -118,12 +130,12 @@ classDiagram
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+- I am most satisfied with the way the backend logic, CLI demo, tests, and Streamlit UI now all connect to the same scheduling model. That made the project feel like one coherent system instead of separate exercises.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+- In another iteration, I would redesign the scheduler to account for overlapping task durations and allow users to mark tasks complete directly from the Streamlit interface. I would also improve validation around time input so the app is more robust for real users.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+- My biggest takeaway is that AI is most useful when I stay in the lead architect role. The best results came from breaking the project into phases, asking focused questions, and verifying each suggestion instead of accepting generated code as automatically correct.

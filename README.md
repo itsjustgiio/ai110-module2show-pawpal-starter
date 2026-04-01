@@ -22,6 +22,16 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Features
+
+- Add and manage multiple pets for one owner
+- Create tasks with priority, frequency, category, and scheduled time
+- Sort scheduled tasks by due date and time
+- Filter tasks by pet and completion status
+- Detect exact-time scheduling conflicts and show warnings in the UI
+- Regenerate daily and weekly recurring tasks after completion
+- Generate a daily plan that respects the owner's available minutes
+
 ## Getting started
 
 ### Setup
@@ -50,6 +60,14 @@ PawPal+ now includes a few lightweight scheduling features to make planning more
 - The scheduler can filter tasks by pet name or completion status.
 - Daily and weekly recurring tasks automatically generate the next occurrence when completed.
 - The scheduler can detect exact-time conflicts and return warning messages instead of crashing.
+
+## 📸 Demo
+
+Add your final Streamlit screenshot here after capturing it from the running app:
+
+![screenshot of your final Streamlit app](image.png)
+
+The final UML diagram is included in [uml_final.svg](./uml_final.svg).
 
 ## Testing PawPal+
 
